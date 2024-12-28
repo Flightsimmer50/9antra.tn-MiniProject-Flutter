@@ -20,7 +20,7 @@ class Course {
       id: doc.id,
       name: data['name'] ?? '',
       price: data['price'] ?? '',
-      imageUrl: data['image_url'],
+      imageUrl: data['image_path'],
     );
   }
 }
