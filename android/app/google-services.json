@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "644055839812",
+    "project_id": "test-9antratn",
+    "storage_bucket": "test-9antratn.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:644055839812:android:16c6c662bdfedadb193811",
+        "android_client_info": {
+          "package_name": "com.example.beecoderstest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCy6Lf6N1aueeNrbTtGBwXhxeHrxXa5DCc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
