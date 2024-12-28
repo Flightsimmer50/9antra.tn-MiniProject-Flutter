@@ -1,4 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    package="com.example.beecoderstest">
     <application
         android:label="beecoderstest"
         android:name="${applicationName}"
