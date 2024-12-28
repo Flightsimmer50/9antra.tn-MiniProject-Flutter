@@ -78,6 +78,10 @@ class _AdminPageState extends State<AdminPage> {
               // Button to select a new image
               SizedBox(height: 10),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF9B1B30),
+                  foregroundColor: Colors.white,
+                ),
                 onPressed: () async {
                   await _pickImage();
                   setState(() {}); // Update the UI
@@ -119,7 +123,9 @@ class _AdminPageState extends State<AdminPage> {
                   newImageUrl, // Use new or old image URL
                 );
 
-                setState(() {});
+                // Refresh the courses list
+                await _fetchCourses(); // Refresh the list after saving
+
                 Navigator.of(context).pop();
               },
               child: Text('Save'),
@@ -182,6 +188,10 @@ class _AdminPageState extends State<AdminPage> {
                   Text('Manage Courses', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                   SizedBox(height: 20),
                   ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF9B1B30),
+                      foregroundColor: Colors.white,
+                    ),
                     onPressed: () {
                       setState(() {
                         _isSelecting = !_isSelecting;
@@ -211,11 +221,21 @@ class _AdminPageState extends State<AdminPage> {
                   Container(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF9B1B30),
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () async {
+                        // Navigate to AddCourse and await the result
+                        final result = await Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => AddCourse()),
                         );
+
+                        // If the result is true, refresh the courses list
+                        if (result == true) {
+                          _fetchCourses(); // Refresh the course list
+                        }
                       },
                       child: Text('Add Course'),
                     ),

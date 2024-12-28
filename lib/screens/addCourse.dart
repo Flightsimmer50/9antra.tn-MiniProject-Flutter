@@ -19,7 +19,6 @@ class _AddCourseState extends State<AddCourse> {
 
   Future<void> _pickImage() async {
     try {
-      // Use image_picker for both web and mobile
       final XFile? selectedImage = await _picker.pickImage(source: ImageSource.gallery);
       if (selectedImage != null) {
         final bytes = await selectedImage.readAsBytes();
@@ -37,16 +36,14 @@ class _AddCourseState extends State<AddCourse> {
     String name = nameController.text.trim();
     String price = priceController.text.trim();
 
-    // Check if an image has been selected
     String? imageUrl;
     if (_imageData != null) {
-      // Upload the image to Cloudinary
       imageUrl = await _storageService.uploadImageFromBytes(_imageData!);
 
       if (imageUrl == null) {
         print('Failed to upload image to Cloudinary.');
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to upload image.')));
-        return; // Stop if the upload fails
+        return;
       }
     } else {
       print('No image selected for upload');
@@ -54,7 +51,6 @@ class _AddCourseState extends State<AddCourse> {
       return;
     }
 
-    // Add the course to Firestore
     print('Adding course: Name: $name, Price: $price, Image URL: $imageUrl');
     String? courseId = await _courseService.addCourse(name, price, imageUrl);
 
@@ -66,6 +62,9 @@ class _AddCourseState extends State<AddCourse> {
         _imageData = null; // Reset the image
       });
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Course added!')));
+      
+      // Navigate back and return a result
+      Navigator.pop(context, true); // Pass 'true' to indicate success
     } else {
       print('Failed to add course.');
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add course.')));
@@ -94,6 +93,10 @@ class _AddCourseState extends State<AddCourse> {
             ),
             SizedBox(height: 20),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF9B1B30),
+                foregroundColor: Colors.white,
+              ),
               onPressed: _pickImage,
               child: Text('Select Image from Gallery'),
             ),
@@ -102,6 +105,10 @@ class _AddCourseState extends State<AddCourse> {
               Image.memory(_imageData!, height: 100, width: 100, fit: BoxFit.cover), // Display the image
             SizedBox(height: 20),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF9B1B30),
+                foregroundColor: Colors.white,
+              ),
               onPressed: _addCourse,
               child: Text('Add Course'),
             ),
