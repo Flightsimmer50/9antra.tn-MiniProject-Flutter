@@ -7,6 +7,7 @@ import 'dart:html' as html;
 import 'package:flutter/foundation.dart'; // Pour kIsWeb
 import 'dart:async'; // Pour Completer
 import 'dart:io'; // Importer pour utiliser la classe File
+import 'package:beecoderstest/service/courseService.dart'; // Assurez-vous que le chemin est correct
 
 class AddCourse extends StatefulWidget {
   @override
@@ -17,6 +18,7 @@ class _AddCourseState extends State<AddCourse> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
   Uint8List? _imageData;
+  final CourseService _courseService = CourseService(); // Instance de CourseService
 
   Future<void> _pickImage() async {
     if (kIsWeb) {
@@ -58,41 +60,41 @@ class _AddCourseState extends State<AddCourse> {
     return completer.future;
   }
 
-  Future<String?> _uploadImage(Uint8List imageData) async {
-    try {
-      final ref = FirebaseStorage.instance.ref().child('course_images/${DateTime.now().toString()}');
-      await ref.putData(imageData); // Utiliser putData pour Uint8List
-      return await ref.getDownloadURL();
-    } catch (e) {
-      print('Error uploading image: $e');
-      return null;
-    }
-  }
-
   void _addCourse() async {
     String name = nameController.text;
     String price = priceController.text;
 
     String? imageUrl;
     if (_imageData != null) {
-      imageUrl = await _uploadImage(_imageData!); // Passer _imageData! pour obtenir un Uint8List
+      print('Uploading image...'); // Log avant l'upload
+      imageUrl = await _courseService.uploadImage(_imageData!); // Utiliser la méthode uploadImage
+      if (imageUrl != null) {
+        print('Image uploaded successfully: $imageUrl'); // Log après l'upload réussi
+      } else {
+        print('Image upload failed'); // Log si l'upload échoue
+      }
+    } else {
+      print('No image selected for upload'); // Log si aucune image n'est sélectionnée
     }
 
-    // Ajouter le cours à Firestore
-    await FirebaseFirestore.instance.collection('courses').add({
-      'name': name,
-      'price': price,
-      'image_url': imageUrl,
-    });
+    // Ajouter le cours à Firestore en utilisant CourseService
+    print('Adding course: Name: $name, Price: $price, Image URL: $imageUrl'); // Log avant l'ajout
+    String? courseId = await _courseService.addCourse(name, price, _imageData);
 
-    // Réinitialiser les champs après l'ajout
-    nameController.clear();
-    priceController.clear();
-    setState(() {
-      _imageData = null; // Réinitialiser l'image
-    });
+    if (courseId != null) {
+      print('Course added successfully with ID: $courseId'); // Log après l'ajout réussi
+      // Réinitialiser les champs après l'ajout
+      nameController.clear();
+      priceController.clear();
+      setState(() {
+        _imageData = null; // Réinitialiser l'image
+      });
 
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Course added!')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Course added!')));
+    } else {
+      print('Failed to add course.'); // Log si l'ajout échoue
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add course.')));
+    }
   }
 
   @override
