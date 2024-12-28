@@ -1,3 +1,14 @@
+buildscript {
+    repositories {
+        google() // Requis pour les dépendances Google
+        mavenCentral() // Requis pour certaines dépendances
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.1.0'
+        classpath 'com.google.gms:google-services:4.3.10' // Plugin Google Services
+    }
+}
+
 allprojects {
     repositories {
         google()
@@ -5,20 +16,15 @@ allprojects {
     }
 }
 
+// Définit le dossier de sortie des builds pour tous les sous-projets
 rootProject.buildDir = "../build"
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
-subprojects {
     project.evaluationDependsOn(":app")
 }
 
+// Tâche pour nettoyer les fichiers générés
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
-buildscript {
-    dependencies {
-        // Ajoutez cette ligne
-        classpath 'com.google.gms:google-services:4.3.10' // Google Services plugin
-    }
-}
+
