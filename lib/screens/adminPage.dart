@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:beecoderstest/screens/addCourse.dart';
 import 'package:beecoderstest/models/course.dart';
 import 'package:beecoderstest/service/courseService.dart';
 import 'package:beecoderstest/service/storage_service.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:html' as html;
 import 'dart:typed_data';
 import 'dart:io';
 
@@ -47,55 +45,23 @@ class _AdminPageState extends State<AdminPage> {
   }
 
   Future<void> _pickImage() async {
-    if (kIsWeb) {
-      html.File? selectedImage = await _selectImageForWeb();
-      if (selectedImage != null) {
-        final reader = html.FileReader();
-        reader.readAsArrayBuffer(selectedImage);
-        reader.onLoadEnd.listen((e) {
-          setState(() {
-            _imageData = reader.result as Uint8List;
-            localImagePath = selectedImage.name;
-          });
-        });
-      } else {
-        print('Aucun fichier sélectionné dans le navigateur.'); // Debug
-      }
+    final ImagePicker picker = ImagePicker();
+    final XFile? selectedImage = await picker.pickImage(source: ImageSource.gallery);
+    
+    if (selectedImage != null) {
+      final bytes = await selectedImage.readAsBytes();
+      setState(() {
+        _imageData = bytes;
+        localImagePath = selectedImage.path; // Update the local image path
+      });
     } else {
-      final ImagePicker picker = ImagePicker();
-      final XFile? selectedImage = await picker.pickImage(source: ImageSource.gallery);
-      if (selectedImage != null) {
-        final bytes = await selectedImage.readAsBytes();
-        setState(() {
-          _imageData = bytes;
-          localImagePath = selectedImage.path; // Mettre à jour le chemin de l'image
-        });
-      } else {
-        print('Aucune image sélectionnée sur mobile.'); // Debug
-      }
+      print('No image selected.'); // Debug
     }
-  }
-
-  Future<html.File?> _selectImageForWeb() async {
-    final html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
-    uploadInput.accept = 'image/*'; // Accepter uniquement les fichiers image
-    uploadInput.click(); // Ouvrir la boîte de dialogue de sélection de fichier
-
-    return await Future<html.File?>.delayed(Duration(seconds: 1), () {
-      if (uploadInput.files!.isNotEmpty) {
-        return uploadInput.files![0];
-      } else {
-        print('Aucun fichier sélectionné.'); // Debug
-        return null;
-      }
-    });
   }
 
   Future<void> _showEditCourseDialog(BuildContext context, Course course) async {
     final TextEditingController nameController = TextEditingController(text: course.name);
     final TextEditingController priceController = TextEditingController(text: course.price);
-    
-    // Initialiser le chemin de l'image
     localImagePath = course.imageUrl;
 
     showDialog(
@@ -109,22 +75,17 @@ class _AdminPageState extends State<AdminPage> {
               TextField(controller: nameController, decoration: InputDecoration(labelText: 'Course Name')),
               TextField(controller: priceController, decoration: InputDecoration(labelText: 'Course Price')),
               
-              // Bouton pour sélectionner une nouvelle image
+              // Button to select a new image
               SizedBox(height: 10),
               ElevatedButton(
                 onPressed: () async {
                   await _pickImage();
-                  if (_imageData != null) {
-                    print('Image sélectionnée avec succès.'); // Debug
-                  } else {
-                    print('Aucune nouvelle image sélectionnée.'); // Debug
-                  }
-                  setState(() {}); // Mettre à jour l'interface utilisateur
+                  setState(() {}); // Update the UI
                 },
-                child: Text('Sélectionner une nouvelle image'),
+                child: Text('Select New Image'),
               ),
 
-              // Afficher l'image sélectionnée
+              // Display the selected image
               if (_imageData != null)
                 Image.memory(_imageData!, height: 100, width: 100, fit: BoxFit.cover),
             ],
@@ -141,26 +102,21 @@ class _AdminPageState extends State<AdminPage> {
                 String? newImageUrl;
 
                 if (_imageData != null) {
-                  // Téléchargez l'image sur Cloudinary
-                  if (kIsWeb) {
-                    newImageUrl = await _storageService.uploadImageFromBytes(_imageData!);
-                    print('Image URL (Web): $newImageUrl'); // Debug
-                  } else {
-                    final imageFile = File(localImagePath!);
-                    newImageUrl = await _storageService.uploadImage(imageFile);
-                    print('Image URL (Mobile): $newImageUrl'); // Debug
-                  }
+                  // Upload the image to Cloudinary
+                  final imageFile = File(localImagePath!);
+                  newImageUrl = await _storageService.uploadImage(imageFile);
+                  print('Image URL: $newImageUrl'); // Debug
                 } else {
-                  newImageUrl = localImagePath; // Garder l'ancienne image si aucune nouvelle n'est sélectionnée
-                  print('Aucune nouvelle image sélectionnée, en conservant l\'ancienne URL.'); // Debug
+                  newImageUrl = localImagePath; // Keep the old image if no new one is selected
+                  print('No new image selected, keeping old URL.'); // Debug
                 }
 
-                // Mettre à jour le cours avec les nouvelles valeurs
+                // Update the course with new values
                 await _courseService.updateCourse(
                   course.id,
                   nameController.text,
                   priceController.text,
-                  newImageUrl, // Utiliser la nouvelle URL ou l'ancienne
+                  newImageUrl, // Use new or old image URL
                 );
 
                 setState(() {});
@@ -182,23 +138,23 @@ class _AdminPageState extends State<AdminPage> {
 
   void _deleteSelectedCourses() async {
     setState(() {
-      _isLoading = true; // Indiquer que nous sommes en cours de chargement
+      _isLoading = true; // Indicate loading
     });
 
     try {
       for (int i = _courses.length - 1; i >= 0; i--) {
         if (_selectedCourses[i]) {
-          await _courseService.deleteCourse(_courses[i].id); // Appeler le service pour supprimer le cours
-          _courses.removeAt(i); // Supprimer le cours de la liste locale
+          await _courseService.deleteCourse(_courses[i].id); // Delete course
+          _courses.removeAt(i); // Remove course from local list
         }
       }
-      _selectedCourses = List<bool>.filled(_courses.length, false); // Réinitialiser les sélections
+      _selectedCourses = List<bool>.filled(_courses.length, false); // Reset selections
     } catch (e) {
       print('Error deleting courses: $e');
     } finally {
       setState(() {
-        _isSelecting = false; // Quitter le mode sélection
-        _isLoading = false; // Fin du chargement
+        _isSelecting = false; // Exit selection mode
+        _isLoading = false; // End loading
       });
     }
   }

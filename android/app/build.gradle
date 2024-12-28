@@ -11,13 +11,14 @@ android {
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
-    defaultConfig {
+defaultConfig {
         applicationId = "com.example.beecoderstest"
-        minSdk = flutter.minSdkVersion
+        minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-    }
+}
+
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
