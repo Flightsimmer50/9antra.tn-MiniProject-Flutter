@@ -4,7 +4,7 @@ class Course {
   final String id;
   final String name;
   final String price;
-  final String? imageUrl;
+   String? imageUrl;
 
   Course({
     required this.id,
