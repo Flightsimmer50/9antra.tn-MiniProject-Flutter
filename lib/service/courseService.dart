@@ -20,21 +20,20 @@ class CourseService {
   }
 
   // Méthode pour récupérer tous les cours
-  Future<List<Course>> getCourses() async {
-    try {
-      // Récupérer les documents de la collection 'courses'
-      QuerySnapshot snapshot = await _firestore.collection('courses').get();
+ Future<List<Course>> getCourses() async {
+  try {
+    // Récupérer les documents de la collection 'courses'
+    QuerySnapshot snapshot = await _firestore.collection('courses').get();
 
-      // Mapper chaque document à un objet Course
-      return snapshot.docs.map((doc) {
-        return Course.fromFirestore(doc); // Utiliser la méthode fromFirestore
-      }).toList();
-    } catch (e) {
-      print('Error fetching courses: $e');
-      return []; // Retourner une liste vide en cas d'erreur
-    }
+    // Mapper chaque document à un objet Course
+    return snapshot.docs.map((doc) {
+      return Course.fromFirestore(doc); // Utiliser la méthode fromFirestore
+    }).toList();
+  } catch (e) {
+    print('Error fetching courses: $e');
+    return []; // Retourner une liste vide en cas d'erreur
   }
-
+}
   // Méthode pour récupérer un cours par ID
   Future<Course?> getCourseById(String courseId) async {
     try {

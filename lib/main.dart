@@ -8,13 +8,13 @@ import 'package:cloudinary_flutter/cloudinary_context.dart';
 import 'package:cloudinary_url_gen/cloudinary.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Assurez-vous que les widgets sont initialisés
+  WidgetsFlutterBinding.ensureInitialized(); 
   await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform); // Initialiser Firebase
 
   // Corriger le nom de la classe Cloudinary
   CloudinaryContext.cloudinary =
-      Cloudinary.fromCloudName(cloudName: 'dqzdkadev'); // Mettre le nom de votre cloud entre guillemets
+      Cloudinary.fromCloudName(cloudName: 'dqzdkadev'); 
 
   runApp(
     ChangeNotifierProvider(

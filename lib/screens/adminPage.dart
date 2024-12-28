@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:beecoderstest/screens/addCourse.dart'; // Importer la page AddCourse
 import 'package:beecoderstest/models/course.dart'; // Importer la classe Course
 import 'package:beecoderstest/service/courseService.dart'; // Importer votre service
-import 'package:shared_preferences/shared_preferences.dart'; // Pour le stockage local
 
 class AdminPage extends StatefulWidget {
   @override
@@ -21,24 +20,20 @@ class _AdminPageState extends State<AdminPage> {
   }
 
   Future<void> _fetchCourses() async {
-    // Récupérer les cours depuis Firestore
-    List<Course> courses = await _courseService.getCourses();
+    try {
+      // Récupérer les cours depuis Firestore
+      List<Course> courses = await _courseService.getCourses();
 
-    // Récupérer l'image depuis shared_preferences (si nécessaire)
-    final prefs = await SharedPreferences.getInstance();
-    String? savedImage = prefs.getString('course_image'); // Exemple d'image sauvegardée
-
-    // Ajouter l'image à chaque cours si besoin
-    for (var course in courses) {
-      if (savedImage != null) {
-        course.imageUrl = savedImage; // Utiliser l'image sauvegardée si nécessaire
-      }
+      setState(() {
+        _courses = courses;
+        _isLoading = false; // Fin du chargement
+      });
+    } catch (e) {
+      print('Error fetching courses: $e');
+      setState(() {
+        _isLoading = false; // Fin du chargement même en cas d'erreur
+      });
     }
-
-    setState(() {
-      _courses = courses;
-      _isLoading = false; // Fin du chargement
-    });
   }
 
   @override
@@ -97,6 +92,7 @@ class CourseTile extends StatelessWidget {
     return Card(
       margin: EdgeInsets.symmetric(vertical: 8.0),
       child: Container(
+        height: 150, // Hauteur de la carte
         decoration: BoxDecoration(
           image: DecorationImage(
             image: NetworkImage(course.imageUrl ?? 'assets/LogoTheBrige.png'),
@@ -110,12 +106,12 @@ class CourseTile extends StatelessWidget {
             children: [
               Text(
                 course.name,
-                style: TextStyle(fontSize: 18, color: Colors.black), // Changer la couleur du texte
+                style: TextStyle(fontSize: 18, color: Colors.white), // Couleur du texte
               ),
               SizedBox(height: 8.0),
               Text(
                 course.price,
-                style: TextStyle(fontSize: 16, color: Colors.black), // Changer la couleur du texte
+                style: TextStyle(fontSize: 16, color: Colors.white), // Couleur du texte
               ),
             ],
           ),
