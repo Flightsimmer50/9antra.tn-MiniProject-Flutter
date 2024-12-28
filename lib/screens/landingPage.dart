@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:beecoderstest/screens/adminPage.dart'; // Importer la page Admin
 import 'package:beecoderstest/models/course.dart'; // Import the Course model
-import 'package:beecoderstest/service/courseService.dart'; // Import your Course service
+import 'package:beecoderstest/service/courseService.dart'; // Import Course service
 
 class LandingPage extends StatefulWidget {
   @override
