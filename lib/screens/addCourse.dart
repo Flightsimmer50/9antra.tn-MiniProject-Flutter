@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:html' as html;
 import 'package:flutter/foundation.dart'; // Pour kIsWeb
 import 'dart:async'; // Pour Completer
-import 'dart:io'; // Importer pour utiliser la classe File
-import 'package:beecoderstest/service/courseService.dart'; // Assurez-vous que le chemin est correct
+import 'package:beecoderstest/service/courseService.dart'; // Votre service Firestore
+import 'package:beecoderstest/service/storage_service.dart'; // Votre service Cloudinary
 
 class AddCourse extends StatefulWidget {
   @override
@@ -18,7 +16,8 @@ class _AddCourseState extends State<AddCourse> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
   Uint8List? _imageData;
-  final CourseService _courseService = CourseService(); // Instance de CourseService
+  final CourseService _courseService = CourseService();
+  final StorageService _storageService = StorageService();
 
   Future<void> _pickImage() async {
     if (kIsWeb) {
@@ -38,8 +37,9 @@ class _AddCourseState extends State<AddCourse> {
       final ImagePicker picker = ImagePicker();
       final XFile? selectedImage = await picker.pickImage(source: ImageSource.gallery);
       if (selectedImage != null) {
+        final bytes = await selectedImage.readAsBytes();
         setState(() {
-          _imageData = File(selectedImage.path).readAsBytesSync(); // Lire les octets
+          _imageData = bytes; // Utiliser les octets de l'image
         });
       }
     }
@@ -60,39 +60,46 @@ class _AddCourseState extends State<AddCourse> {
     return completer.future;
   }
 
-  void _addCourse() async {
-    String name = nameController.text;
-    String price = priceController.text;
+  Future<void> _addCourse() async {
+    String name = nameController.text.trim();
+    String price = priceController.text.trim();
 
+    // Vérifiez si une image a été sélectionnée
     String? imageUrl;
     if (_imageData != null) {
-      print('Uploading image...'); // Log avant l'upload
-      imageUrl = await _courseService.uploadImage(_imageData!); // Utiliser la méthode uploadImage
-      if (imageUrl != null) {
-        print('Image uploaded successfully: $imageUrl'); // Log après l'upload réussi
+      // Télécharger l'image sur Cloudinary
+      if (kIsWeb) {
+        imageUrl = await _storageService.uploadImageFromBytes(_imageData!);
       } else {
-        print('Image upload failed'); // Log si l'upload échoue
+        // Pour mobile, vous devez obtenir la bonne méthode pour créer un fichier
+        //imageUrl = await _storageService.uploadImage(File.fromRawPath(_imageData!)); // Modifiez ceci si nécessaire
+      }
+
+      if (imageUrl == null) {
+        print('Failed to upload image to Cloudinary.');
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to upload image.')));
+        return; // Arrêter si l'upload échoue
       }
     } else {
-      print('No image selected for upload'); // Log si aucune image n'est sélectionnée
+      print('No image selected for upload');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please select an image.')));
+      return;
     }
 
-    // Ajouter le cours à Firestore en utilisant CourseService
-    print('Adding course: Name: $name, Price: $price, Image URL: $imageUrl'); // Log avant l'ajout
-    String? courseId = await _courseService.addCourse(name, price, _imageData);
+    // Ajouter le cours à Firestore
+    print('Adding course: Name: $name, Price: $price, Image URL: $imageUrl');
+    String? courseId = await _courseService.addCourse(name, price, imageUrl);
 
     if (courseId != null) {
-      print('Course added successfully with ID: $courseId'); // Log après l'ajout réussi
-      // Réinitialiser les champs après l'ajout
+      print('Course added successfully with ID: $courseId');
       nameController.clear();
       priceController.clear();
       setState(() {
         _imageData = null; // Réinitialiser l'image
       });
-
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Course added!')));
     } else {
-      print('Failed to add course.'); // Log si l'ajout échoue
+      print('Failed to add course.');
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add course.')));
     }
   }

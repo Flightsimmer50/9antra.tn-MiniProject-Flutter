@@ -2,16 +2,24 @@ import 'package:beecoderstest/firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart'; // Importer Firebase
 import 'package:provider/provider.dart'; // Importer Provider
-import 'screens/landingPage.dart';  // Page d'accueil
-import 'service/storage_service.dart'; 
+import 'screens/landingPage.dart'; // Page d'accueil
+import 'service/storage_service.dart';
+import 'package:cloudinary_flutter/cloudinary_context.dart';
+import 'package:cloudinary_url_gen/cloudinary.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Assurez-vous que les widgets sont initialisés
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform); // Initialiser Firebase
+  await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform); // Initialiser Firebase
+
+  // Corriger le nom de la classe Cloudinary
+  CloudinaryContext.cloudinary =
+      Cloudinary.fromCloudName(cloudName: 'dqzdkadev'); // Mettre le nom de votre cloud entre guillemets
+
   runApp(
     ChangeNotifierProvider(
       create: (context) => StorageService(),
-      child:  MyApp(),
+      child: MyApp(),
     ),
   );
 }
@@ -25,7 +33,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       debugShowCheckedModeBanner: false,
-      home: LandingPage(),  // Afficher LandingPage au démarrage
+      home: LandingPage(), // Afficher LandingPage au démarrage
     );
   }
 }
