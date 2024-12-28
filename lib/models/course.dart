@@ -1,18 +1,26 @@
-// lib/models/course.dart
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Course {
-  final String _id; // Champ privé pour l'identifiant
+  final String id;
   final String name;
   final String price;
-  final String imageUrl; // Champ pour l'URL de l'image
+  final String? imageUrl;
 
   Course({
-    required String id,
+    required this.id,
     required this.name,
     required this.price,
-    required this.imageUrl, // Ajout du paramètre pour l'URL de l'image
-  }) : _id = id;
+    this.imageUrl,
+  });
 
-  // Fournir une méthode pour accéder à l'identifiant
-  String get id => _id;
+  // Méthode pour créer un Course à partir d'un DocumentSnapshot
+  factory Course.fromFirestore(DocumentSnapshot doc) {
+    Map data = doc.data() as Map<String, dynamic>;
+    return Course(
+      id: doc.id,
+      name: data['name'] ?? '',
+      price: data['price'] ?? '',
+      imageUrl: data['image_url'],
+    );
+  }
 }
